@@ -35,9 +35,6 @@ jobs:
           tar -xf stockfish.tar -C engines
           chmod +x engines/stockfish
 
-      - name: Ensure engines are executable
-        run: chmod +x engines/*.exe engines/lc0/lc0.exe
-
       - name: Tests start
         run: |
           python main.py --games ${{ github.event.inputs.games_per_job }} --job-id ${{ matrix.job_id }}
