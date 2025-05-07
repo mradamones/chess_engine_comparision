@@ -49,7 +49,7 @@ print(f'Creating engines: {end - start}s')
 results = {"1-0": 0, "0-1": 0, "1/2-1/2": 0}
 
 # num_games = 10
-time_for_move = 0.01
+time_for_move = 10
 depth = 20
 moves_sum = 0
 start = time.time()
