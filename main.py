@@ -11,10 +11,10 @@ import torch
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--games', type=int, default=5, help='Liczba gier do rozegrania')
-parser.add_argument('--job-id', type=int, default=1, help='ID zadania')
+parser.add_argument('--games', type=int, required=True, help='Liczba gier do rozegrania')
+parser.add_argument('--job-id', type=int, required=True, help='ID zadania')
+parser.add_argument('--offset', type=int, default=0, help='Indeks początkowy partii')
 args = parser.parse_args()
-
 
 
 def choose_opening_move(board):
@@ -27,7 +27,6 @@ def choose_opening_move(board):
 
 def nnue_move(board):
     return pick_best_move_with_time(board, nnue_model, time_limit=time_for_move)
-
 
 
 start = time.time()

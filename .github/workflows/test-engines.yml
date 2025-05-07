@@ -30,7 +30,9 @@ jobs:
 
       - name: Tests start
         run: |
-          python main.py --games ${{ github.event.inputs.games_per_job }} --job-id ${{ matrix.job_id }}
+          OFFSET=$(( ( ${{ matrix.job_id }} - 1 ) * ${{ github.event.inputs.games_per_job }} ))
+          python main.py --games ${{ github.event.inputs.games_per_job }} --job-id ${{ matrix.job_id }} --offset $OFFSET
+        shell: bash
 
       - name: Send results
         uses: actions/upload-artifact@v4
