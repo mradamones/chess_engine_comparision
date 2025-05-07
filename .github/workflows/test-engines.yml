@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     strategy:
       matrix:
         job_id: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -27,31 +27,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-
-      - name: Install Meson, Ninja, and build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ninja-build clang-6.0 libstdc++-8-dev pkg-config wget
-
-      - name: Clone LC0 repository
-        run: |
-          git clone --recurse-submodules https://github.com/LeelaChessZero/lc0.git
-          cd lc0
-
-      - name: Build LC0
-        run: |
-          cd lc0
-          CC=clang-6.0 CXX=clang++-6.0 INSTALL_PREFIX=~/.local ./build.sh
-
-      - name: Add LC0 to PATH
-        run: |
-          echo "::add-path::$(pwd)/lc0/build/release"
-          ~/.local/bin/lc0 --help
-
-      - name: Download LC0 neural network
-        run: |
-          wget -O ~/.local/bin/lc0_network.tgz https://storage.lczero.org/files/networks-contrib/t3-512x15x16h-distill-swa-2767500.pb.gz
-          tar -xvzf ~/.local/bin/lc0_network.tgz -C ~/.local/bin/
 
       - name: Tests start
         run: |
