@@ -31,8 +31,10 @@ def nnue_move(board):
 
 
 start = time.time()
-stockfish_path = 'C:\\Users\\szatk\\AppData\\Roaming\\org.encroissant.app\\engines\\stockfish\\stockfish-windows-x86-64-avx2.exe'
-lczero_path = 'D:\\Pobrane\\lc0\\lc0.exe'
+stockfish_path = "engines/stockfish"
+lczero_path = "engines/lc0/lc0"
+# stockfish_path = 'C:\\Users\\szatk\\AppData\\Roaming\\org.encroissant.app\\engines\\stockfish\\stockfish-windows-x86-64-avx2.exe'
+# lczero_path = 'D:\\Pobrane\\lc0\\lc0.exe'
 # stockfish_path = 'Y:\\chessengines\\stockfish\\stockfish-windows-x86-64-avx2.exe'
 # lczero_path = 'Y:\\chessengines\\lc0\\lc0.exe'
 book_path = "./Komodo.bin"
