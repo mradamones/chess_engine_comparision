@@ -8,6 +8,13 @@ import chess.pgn
 import chess.polyglot
 from nnue import FakeNNUE, pick_best_move_with_time
 import torch
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--games', type=int, default=5, help='Liczba gier do rozegrania')
+parser.add_argument('--job-id', type=int, default=1, help='ID zadania')
+args = parser.parse_args()
+
 
 
 def choose_opening_move(board):
@@ -44,7 +51,7 @@ time_for_move = 3
 depth = 20
 moves_sum = 0
 start = time.time()
-for i in range(num_games):
+for i in range(args.offset, args.offset + args.games):
     for white, black in [("Stockfish", "Lc0"), ("Lc0", "Stockfish"), ("Stockfish", "NNUE"), ("NNUE", "Stockfish"), ("Lc0", "NNUE"), ("NNUE", "Lc0")]:
         board = chess.Board()
         game = chess.pgn.Game()
