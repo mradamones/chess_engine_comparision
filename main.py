@@ -15,6 +15,8 @@ parser.add_argument('--games', type=int, required=True, help='Liczba gier do roz
 parser.add_argument('--job-id', type=int, required=True, help='ID zadania')
 parser.add_argument('--offset', type=int, default=0, help='Indeks początkowy partii')
 args = parser.parse_args()
+print(f"[DEBUG] Job {args.job_id} Offset {args.offset} Games {args.games}", flush=True)
+
 
 
 def choose_opening_move(board):
@@ -77,6 +79,7 @@ for i in range(args.offset, args.offset + args.games):
                     result = engine.play(board, chess.engine.Limit(time=time_for_move))
                     move = result.move
 
+            print(move)
             board.push(move)
             node = node.add_variation(move)
             moves += 1
