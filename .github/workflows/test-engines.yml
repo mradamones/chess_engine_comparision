@@ -35,11 +35,8 @@ jobs:
           tar -xf stockfish.tar -C engines
           chmod +x engines/stockfish
 
-      - name: Download and unpack Lc0
-        run: |
-          wget https://github.com/LeelaChessZero/lc0/releases/download/v0.30.0/lc0-v0.30.0-linux.zip
-          unzip lc0-v0.30.0-linux.zip -d engines/lc0
-          chmod +x engines/lc0/lc0
+      - name: Ensure engines are executable
+        run: chmod +x engines/*.exe engines/lc0/lc0.exe
 
       - name: Tests start
         run: |
