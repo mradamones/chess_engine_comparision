@@ -15,7 +15,6 @@ parser.add_argument('--games', type=int, required=True, help='Liczba gier do roz
 parser.add_argument('--job-id', type=int, required=True, help='ID zadania')
 parser.add_argument('--offset', type=int, default=0, help='Indeks początkowy partii')
 args = parser.parse_args()
-print(f"[DEBUG] Job {args.job_id} Offset {args.offset} Games {args.games}", flush=True)
 
 
 
@@ -49,8 +48,8 @@ end = time.time()
 print(f'Creating engines: {end - start}s')
 results = {"1-0": 0, "0-1": 0, "1/2-1/2": 0}
 
-num_games = 10
-time_for_move = 3
+# num_games = 10
+time_for_move = 0.01
 depth = 20
 moves_sum = 0
 start = time.time()
@@ -79,7 +78,6 @@ for i in range(args.offset, args.offset + args.games):
                     result = engine.play(board, chess.engine.Limit(time=time_for_move))
                     move = result.move
 
-            print(move)
             board.push(move)
             node = node.add_variation(move)
             moves += 1
@@ -94,8 +92,8 @@ for i in range(args.offset, args.offset + args.games):
 
         results[board.result()] += 1
 end = time.time()
-print(f'Avg moves: {moves_sum/(num_games*12)}')
-print(f'10 games avg: {(end - start)/num_games}s')
+print(f'Avg moves: {moves_sum/(args.games*12)}')
+print(f'10 games avg: {(end - start)/args.games}s')
 print(f"Wyniki: {results}")
 
 stockfish.quit()
