@@ -7,6 +7,10 @@ on:
         description: 'Liczba gier na zadanie'
         required: true
         default: '5'
+      time_control:
+        description: 'Czas na ruch'
+        required: true
+        default: 10
 
 jobs:
   test:
@@ -31,7 +35,7 @@ jobs:
       - name: Tests start
         run: |
           OFFSET=$(( ( ${{ matrix.job_id }} - 1 ) * ${{ github.event.inputs.games_per_job }} ))
-          python main.py --games ${{ github.event.inputs.games_per_job }} --job-id ${{ matrix.job_id }} --offset $OFFSET
+          python main.py --games ${{ github.event.inputs.games_per_job }} --time-control ${{ github.event.inputs.time_control }} --job-id ${{ matrix.job_id }} --offset $OFFSET
         shell: bash
 
       - name: Send results

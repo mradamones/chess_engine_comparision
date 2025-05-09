@@ -14,7 +14,7 @@ def calculate_elo(r_a, r_b, result, k=32):
     return new_r_a
 
 
-pgn_path = "games_nnue.pgn"
+pgn_path = "merged_games.pgn"
 with open(pgn_path) as pgn_file:
     while True:
         game = chess.pgn.read_game(pgn_file)

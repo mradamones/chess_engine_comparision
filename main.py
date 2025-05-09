@@ -12,6 +12,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--games', type=int, required=True, help='Liczba gier do rozegrania')
+parser.add_argument('--time-control', type=int, required=True, help='Czas na ruch')
 parser.add_argument('--job-id', type=int, required=True, help='ID zadania')
 parser.add_argument('--offset', type=int, default=0, help='Indeks początkowy partii')
 args = parser.parse_args()
