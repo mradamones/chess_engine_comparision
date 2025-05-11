@@ -97,13 +97,23 @@ def board_to_input(board):
     return input_vector
 
 
+eval_cache = {}
+
+
 def evaluate_position(board, model):
-    input_vec = board_to_input(board)
-    score = model(input_vec.unsqueeze(0)).item()
+    fen = board.fen()
+    if fen in eval_cache:
+        return eval_cache[fen]
+
+    input_vec = board_to_input(board).unsqueeze(0).to(next(model.parameters()).device)
+    with torch.no_grad():
+        score = model(input_vec).item()
+
+    eval_cache[fen] = score
     return score
 
 
-def minimax(board, model, depth, maximizing_player):
+def minimax(board, model, depth, maximizing_player, alpha=-float('inf'), beta=float('inf')):
     if depth == 0 or board.is_game_over():
         return evaluate_position(board, model)
 
@@ -111,33 +121,45 @@ def minimax(board, model, depth, maximizing_player):
         max_eval = -float('inf')
         for move in board.legal_moves:
             board.push(move)
-            eval = minimax(board, model, depth - 1, False)
-            max_eval = max(max_eval, eval)
+            eval = minimax(board, model, depth - 1, False, alpha, beta)
             board.pop()
+            max_eval = max(max_eval, eval)
+            alpha = max(alpha, eval)
+            if beta <= alpha:
+                break  # Prune
         return max_eval
     else:
         min_eval = float('inf')
         for move in board.legal_moves:
             board.push(move)
-            eval = minimax(board, model, depth - 1, True)
-            min_eval = min(min_eval, eval)
+            eval = minimax(board, model, depth - 1, True, alpha, beta)
             board.pop()
+            min_eval = min(min_eval, eval)
+            beta = min(beta, eval)
+            if beta <= alpha:
+                break  # Prune
         return min_eval
 
 
 def pick_best_move(board, model, depth=2):
+    legal_moves = list(board.legal_moves)
+    if depth == 0:
+        # Brak przeszukiwania – wybierz losowy ruch albo pierwszy z listy
+        return random.choice(legal_moves)
+
     best_move = None
     best_value = -float('inf') if board.turn == chess.WHITE else float('inf')
-
-    for move in board.legal_moves:
+    for move in legal_moves:
         board.push(move)
-        board_value = minimax(board, model, depth, board.turn == chess.WHITE)
+        value = minimax(board, model, depth - 1, board.turn == chess.WHITE, -float('inf'), float('inf'))
         board.pop()
 
-        if (board.turn == chess.WHITE and board_value > best_value) or (board.turn == chess.BLACK and board_value < best_value):
-            best_value = board_value
+        if board.turn == chess.WHITE and value > best_value:
+            best_value = value
             best_move = move
-
+        elif board.turn == chess.BLACK and value < best_value:
+            best_value = value
+            best_move = move
     return best_move
 
 
@@ -152,7 +174,7 @@ def pick_best_move_with_time(board, model, time_limit=1.0):
 
         for move in board.legal_moves:
             board.push(move)
-            eval = minimax(board, model, depth - 1, board.turn == chess.WHITE)
+            eval = minimax(board, model, depth - 1, board.turn == chess.WHITE, -float('inf'), float('inf'))
             board.pop()
 
             if board.turn == chess.WHITE:
