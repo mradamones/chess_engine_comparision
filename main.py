@@ -12,7 +12,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--games', type=int, required=True, help='Liczba gier do rozegrania')
-parser.add_argument('--time-control', type=int, required=True, help='Czas na ruch')
+parser.add_argument('--time-control', type=float, required=True, help='Czas na ruch')
 parser.add_argument('--job-id', type=int, required=True, help='ID zadania')
 parser.add_argument('--offset', type=int, default=0, help='Indeks początkowy partii')
 args = parser.parse_args()
@@ -28,7 +28,7 @@ def choose_opening_move(board):
 
 
 def nnue_move(board):
-    return pick_best_move_with_time(board, nnue_model, time_limit=time_for_move)
+    return pick_best_move_with_time(board, nnue_model, time_limit=args.time_control)
 
 
 start = time.time()
@@ -50,7 +50,7 @@ print(f'Creating engines: {end - start}s')
 results = {"1-0": 0, "0-1": 0, "1/2-1/2": 0}
 
 # num_games = 10
-time_for_move = 10
+# time_for_move = 10
 depth = 20
 moves_sum = 0
 start = time.time()
@@ -64,7 +64,7 @@ for i in range(args.offset, args.offset + args.games):
         game.headers["Round"] = str(i)
         game.headers["Date"] = str(datetime.now())
         game.headers["Site"] = "placeholder"
-        game.headers["Time"] = str(time_for_move)
+        game.headers["Time"] = str(args.time_control)
         node = game
         moves = 0
         while not board.is_game_over():
@@ -76,7 +76,7 @@ for i in range(args.offset, args.offset + args.games):
                 else:
                     engine = stockfish if (white == "Stockfish" and board.turn == chess.WHITE) or (
                                 black == "Stockfish" and board.turn == chess.BLACK) else lczero
-                    result = engine.play(board, chess.engine.Limit(time=time_for_move))
+                    result = engine.play(board, chess.engine.Limit(time=args.time_control))
                     move = result.move
 
             board.push(move)
