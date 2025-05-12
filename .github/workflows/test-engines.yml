@@ -42,4 +42,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wyniki-${{ matrix.job_id }}
-          path: games_nnue_${{ matrix.job_id }}.pgn
+          path: depth_${{ matrix.job_id }}.pgn
