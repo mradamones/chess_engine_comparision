@@ -94,7 +94,7 @@ for i in range(args.offset, args.offset + args.games):
 
         game.headers["Result"] = board.result()
         # with open(f"games_nnue_{args.job_id}.pgn", "a") as f:
-        with open(f"depth_{args.depth}.pgn", "a") as f:
+        with open(f"depth_{args.job_id}.pgn", "a") as f:
             print(game, file=f)
             f.write("\n")
 
