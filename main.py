@@ -56,12 +56,7 @@ num_games = 100
 time_for_move = 10
 moves_sum = 0
 start = time.time()
-# for i in range(args.offset, args.offset + args.games):
-for i in range(43, num_games):
-    stockfish.quit()
-    lczero.quit()
-    stockfish = chess.engine.SimpleEngine.popen_uci(stockfish_path, stderr=subprocess.DEVNULL)
-    lczero = chess.engine.SimpleEngine.popen_uci(lczero_path, stderr=subprocess.DEVNULL)
+for i in range(args.offset, args.offset + args.games):
     for white, black in [("Stockfish", "Lc0"), ("Lc0", "Stockfish"), ("Stockfish", "NNUE"), ("NNUE", "Stockfish"), ("Lc0", "NNUE"), ("NNUE", "Lc0")]:
         board = chess.Board()
         game = chess.pgn.Game()
@@ -113,10 +108,8 @@ for i in range(43, num_games):
         results[board.result()] += 1
         eval_cache.clear()
 end = time.time()
-# print(f'Avg moves: {moves_sum/(args.games*12)}')
-# print(f'10 games avg: {(end - start)/args.games}s')
-print(f'Avg moves: {moves_sum/(num_games*12)}')
-print(f'10 games avg: {(end - start)/num_games}s')
+print(f'Avg moves: {moves_sum/(args.games*12)}')
+print(f'10 games avg: {(end - start)/args.games}s')
 print(f"Wyniki: {results}")
 
 stockfish.quit()
