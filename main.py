@@ -52,12 +52,12 @@ end = time.time()
 print(f'Creating engines: {end - start}s')
 results = {"1-0": 0, "0-1": 0, "1/2-1/2": 0}
 
-num_games = 100
+# num_games = 100
 time_for_move = 10
 moves_sum = 0
 start = time.time()
 for i in range(args.offset, args.offset + args.games):
-    for white, black in [("Stockfish", "Lc0"), ("Lc0", "Stockfish"), ("Stockfish", "NNUE"), ("NNUE", "Stockfish"), ("Lc0", "NNUE"), ("NNUE", "Lc0")]:
+    for white, black in [("Stockfish", "Lc0"), ("Lc0", "Stockfish")]:
         board = chess.Board()
         game = chess.pgn.Game()
         game.headers["White"] = white
@@ -74,23 +74,19 @@ for i in range(args.offset, args.offset + args.games):
             move = choose_opening_move(board)
 
             if move is None:
-                if (white == "NNUE" and board.turn == chess.WHITE) or (black == "NNUE" and board.turn == chess.BLACK):
-                    # move = nnue_move(board)
-                    move = nnue_move_depth(board)
-                else:
-                    engine = stockfish if (white == "Stockfish" and board.turn == chess.WHITE) or (
-                            black == "Stockfish" and board.turn == chess.BLACK) else lczero
-                    # result = engine.play(board, chess.engine.Limit(time=time_for_move))
-                    try:
-                        result = engine.play(board, chess.engine.Limit(depth=args.depth))
-                    except chess.engine.EngineTerminatedError:
-                        print(f"{engine} padł, restartuję.")
-                        engine.quit()
-                        engine = chess.engine.SimpleEngine.popen_uci(
-                            stockfish_path if engine == stockfish else lczero_path
-                        )
-                        result = engine.play(board, chess.engine.Limit(depth=args.depth))
-                    move = result.move
+                engine = stockfish if (white == "Stockfish" and board.turn == chess.WHITE) or (
+                        black == "Stockfish" and board.turn == chess.BLACK) else lczero
+                # result = engine.play(board, chess.engine.Limit(time=time_for_move))
+                try:
+                    result = engine.play(board, chess.engine.Limit(depth=args.depth))
+                except chess.engine.EngineTerminatedError:
+                    print(f"{engine} padl, restartuje.")
+                    engine.quit()
+                    engine = chess.engine.SimpleEngine.popen_uci(
+                        stockfish_path if engine == stockfish else lczero_path
+                    )
+                    result = engine.play(board, chess.engine.Limit(depth=args.depth))
+                move = result.move
 
             board.push(move)
             node = node.add_variation(move)
