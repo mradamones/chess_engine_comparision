@@ -84,7 +84,7 @@ for i in range(args.offset, args.offset + args.games):
                     try:
                         result = engine.play(board, chess.engine.Limit(depth=args.depth))
                     except chess.engine.EngineTerminatedError:
-                        print(f"{engine} padł, restartuję.")
+                        print(f"{engine} padl, restartuje.")
                         engine.quit()
                         engine = chess.engine.SimpleEngine.popen_uci(
                             stockfish_path if engine == stockfish else lczero_path
