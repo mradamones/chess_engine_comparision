@@ -17,6 +17,17 @@ parser.add_argument('--offset', type=int, default=0, help='Indeks początkowy pa
 args = parser.parse_args()
 
 
+def try_start_engine(args_):
+    try:
+        engine = chess.engine.SimpleEngine.popen_uci(args_, stderr=subprocess.DEVNULL)
+        print(f"Silnik uruchomiony: {args_}")
+        return engine
+    except chess.engine.EngineTerminatedError as e:
+        print(f"Blad uruchamiania silnika: {args_}")
+        print(f"{type(e).__name__}: {e}")
+        return None
+
+
 def choose_opening_move(board):
     with chess.polyglot.open_reader(book_path) as reader:
         moves = list(reader.find_all(board))
@@ -41,8 +52,11 @@ lczero_path = "engines/lc0/lc0.exe"
 # stockfish_path = 'Y:\\chessengines\\stockfish\\stockfish-windows-x86-64-avx2.exe'
 # lczero_path = 'Y:\\chessengines\\lc0_cuda\\lc0.exe'
 book_path = "./Komodo.bin"
-stockfish = chess.engine.SimpleEngine.popen_uci(stockfish_path, stderr=subprocess.DEVNULL)
-lczero = chess.engine.SimpleEngine.popen_uci([lczero_path, "--threads=1", "--backend=cpu"], stderr=subprocess.DEVNULL)
+# stockfish = chess.engine.SimpleEngine.popen_uci(stockfish_path, stderr=subprocess.DEVNULL)
+# lczero = chess.engine.SimpleEngine.popen_uci([lczero_path, "--threads=1", "--backend=cpu"], stderr=subprocess.DEVNULL)
+stockfish = try_start_engine([stockfish_path])
+lczero = try_start_engine([lczero_path, "--threads=1", "--backend=cpu"])
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 nnue_model = FakeNNUE().to(device)
 nnue_model.load_state_dict(torch.load("./saved/fakennue_trained.pt"))
@@ -79,6 +93,7 @@ for i in range(args.offset, args.offset + args.games):
                 # result = engine.play(board, chess.engine.Limit(time=time_for_move))
                 try:
                     result = engine.play(board, chess.engine.Limit(depth=args.depth))
+                    print(f"Ruch {moves}: {engine} wykonuje ruch na pozycji:\n{board}")
                 except chess.engine.EngineTerminatedError:
                     print(f"{engine} padł, restartuję.")
                     try:
@@ -93,6 +108,7 @@ for i in range(args.offset, args.offset + args.games):
 
                     engine = chess.engine.SimpleEngine.popen_uci(args_, stderr=subprocess.DEVNULL)
                     result = engine.play(board, chess.engine.Limit(depth=args.depth))
+                    print(f"Ruch {moves}: {engine} wykonuje ruch na pozycji:\n{board}")
 
                 move = result.move
 
