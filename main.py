@@ -84,8 +84,14 @@ for i in range(args.offset, args.offset + args.games):
         game.headers["Depth"] = str(args.depth)
         node = game
         moves = 0
-        while not board.is_game_over():
+        while True:
             move = choose_opening_move(board)
+            if move is None:
+                break
+            board.push(move)
+            node = node.add_variation(move)
+            moves += 1
+        while not board.is_game_over():
 
             if move is None:
                 engine = stockfish if (white == "Stockfish" and board.turn == chess.WHITE) or (
