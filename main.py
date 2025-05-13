@@ -73,7 +73,13 @@ for i in range(args.offset, args.offset + args.games):
             move = choose_opening_move(board)
             if move is None:
                 break
-            board.push(move)
+            if move in board.legal_moves:
+                board.push(move)
+                node = node.add_variation(move)
+                moves += 1
+            else:
+                print(f"Nielegalny ruch z ksiazki: {move}, pomijam.")
+                break
             node = node.add_variation(move)
             moves += 1
         while not board.is_game_over():
