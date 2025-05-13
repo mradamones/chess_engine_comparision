@@ -6,9 +6,33 @@ import chess.engine
 import random
 import chess.pgn
 import chess.polyglot
+import csv
+import os
 from nnue import FakeNNUE, pick_best_move_with_time, pick_best_move, eval_cache
 import torch
-import argparse
+
+stockfish_path = "engines/stockfish.exe"
+lczero_path = "engines/lc0/lc0.exe"
+book_path = "./Komodo.bin"
+output_csv = "results.csv"
+
+stockfish_config = {"Threads": 1}
+lczero_config = {"backend": "cudnn", "gpu_threads": 1}
+
+max_depth = 10
+games_per_matchup = 2  # 1 jako białe, 1 jako czarne
+max_avg_time = 10
+
+skip_engine = {
+    "Stockfish": False,
+    "Lc0": False,
+    "NNUE": False
+}
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+nnue_model = FakeNNUE().to(device)
+nnue_model.load_state_dict(torch.load("./saved/fakennue_trained.pt"))
+nnue_model.eval()
 
 
 def start_engine(path, name=None, config=None):
@@ -44,29 +68,6 @@ def play_with_restart(engine, path, board, limit, config=None):
         return engine, result.move
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--games', type=int, required=True, help='Liczba gier do rozegrania')
-parser.add_argument('--depth', type=int, required=True, help='Głębokość')
-parser.add_argument('--job-id', type=int, required=True, help='ID zadania')
-parser.add_argument('--offset', type=int, default=0, help='Indeks początkowy partii')
-args = parser.parse_args()
-
-stockfish_path = "engines/stockfish.exe"
-lczero_path = "engines/lc0/lc0.exe"
-book_path = "./Komodo.bin"
-
-stockfish_config = {"Threads": 1}
-lczero_config = {"backend": "cudnn", "gpu_threads": 1}
-
-stockfish = start_engine(stockfish_path, "stockfish", stockfish_config)
-lczero = start_engine(lczero_path, "lc0", lczero_config)
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-nnue_model = FakeNNUE().to(device)
-nnue_model.load_state_dict(torch.load("./saved/fakennue_trained.pt"))
-nnue_model.eval()
-
-
 def choose_opening_move(board):
     if len(board.move_stack) >= 20:
         return None
@@ -76,81 +77,81 @@ def choose_opening_move(board):
         return random.choice(legal) if legal else None
 
 
-def nnue_move(board):
-    return pick_best_move_with_time(board, nnue_model, time_limit=time_for_move)
+def nnue_move_depth(board, depth):
+    return pick_best_move(board, nnue_model, depth=depth)
 
 
-def nnue_move_depth(board):
-    return pick_best_move(board, nnue_model, depth=args.depth)
+def get_move(engine_name, board, depth, limit, white_player, black_player, engines):
+    if (engine_name == "NNUE"):
+        return nnue_move_depth(board, depth)
+    engine, path, conf = engines[engine_name]
+    engine, mv = play_with_restart(engine, path, board, limit, config=conf)
+    engines[engine_name] = (engine, path, conf)
+    return mv
 
-results   = {"1-0": 0, "0-1": 0, "1/2-1/2": 0}
 
-num_games = 100
-time_for_move = 10
-moves_sum = 0
-start = time.time()
-limit = chess.engine.Limit(depth=args.depth)
+def main():
+    engines = {
+        "Stockfish": (start_engine(stockfish_path, "Stockfish", stockfish_config), stockfish_path, stockfish_config),
+        "Lc0": (start_engine(lczero_path, "Lc0", lczero_config), lczero_path, lczero_config),
+    }
 
-for i in range(args.offset, args.offset + args.games):
-    for white, black in [("Stockfish", "Lc0"), ("Lc0", "Stockfish")]:
-        board = chess.Board()
-        game = chess.pgn.Game()
-        game.headers.update({
-            "White": white,
-            "Black": black,
-            "Event": "Praca dyplomowa",
-            "Round": str(i),
-            "Date": datetime.now().strftime("%Y.%m.%d %H:%M:%S"),
-            "Site": "GitHub Actions",
-            "Depth": str(args.depth)
-        })
+    with open(output_csv, "w", newline="") as f:
+        writer = csv.writer(f, delimiter=';')
+        writer.writerow(["depth", "engine", "avg_time", "color"])
 
-        node = game
-        moves = 0
-        while True:
-            mv = choose_opening_move(board)
-            if not mv:
-                break
-            board.push(mv)
-            node = node.add_variation(mv)
-            moves += 1
+        for depth in range(1, max_depth + 1):
+            limit = chess.engine.Limit(depth=depth)
+            print(f"Testing depth {depth}")
+            avg_times = {"Stockfish": {"white": [], "black": []},
+                         "Lc0": {"white": [], "black": []},
+                         "NNUE": {"white": [], "black": []}}
 
-        while not board.is_game_over():
-            if (white == "NNUE" and board.turn == chess.WHITE) or \
-               (black == "NNUE" and board.turn == chess.BLACK):
-                mv = nnue_move_depth(board)
-            else:
-                if (white == "Stockfish" and board.turn == chess.WHITE) or \
-                   (black == "Stockfish" and board.turn == chess.BLACK):
-                    engine, path, conf = stockfish, stockfish_path, stockfish_config
-                else:
-                    engine, path, conf = lczero, lczero_path, lczero_config
-                engine, mv = play_with_restart(engine, path, board, limit, config=conf)
-                if path == stockfish_path:
-                    stockfish = engine
-                else:
-                    lczero = engine
+            matchups = [("Stockfish", "Lc0"), ("Stockfish", "NNUE"),
+                        ("Lc0", "NNUE")]
 
-            board.push(mv)
-            node = node.add_variation(mv)
-            moves += 1
+            for white, black in matchups:
+                for color_flip in range(2):
+                    white_player = white if color_flip == 0 else black
+                    black_player = black if color_flip == 0 else white
 
-        game.headers["Result"] = board.result()
-        # with open(f"games_nnue_{args.job_id}.pgn", "a") as f:
-        with open(f"depth_{args.job_id}.pgn", "a") as f:
-            print(game, file=f)
-            f.write("\n")
+                    if skip_engine[white_player] or skip_engine[black_player]:
+                        continue
 
-        moves_sum += moves
-        print(f"Moves in game {i}: {moves} ({white}, {black})")
+                    board = chess.Board()
+                    moves = 0
+                    times = {"white": [], "black": []}
 
-        results[board.result()] += 1
-        eval_cache.clear()
-end = time.time()
-print(f'Avg moves: {moves_sum/(args.games*12)}')
-print(f'10 games avg: {(end - start)/args.games}s')
-print(f"Wyniki: {results}")
+                    while not board.is_game_over():
+                        mv = choose_opening_move(board)
+                        if mv:
+                            board.push(mv)
+                            continue
 
-stockfish.quit()
-lczero.quit()
+                        start_time = time.time()
+                        current = white_player if board.turn == chess.WHITE else black_player
+                        mv = get_move(current, board, depth, limit, white_player, black_player, engines)
+                        elapsed = time.time() - start_time
+                        board.push(mv)
 
+                        color = "white" if board.turn == chess.BLACK else "black"
+                        times[color].append(elapsed)
+                        avg_times[current][color].append(elapsed)
+                        eval_cache.clear()
+
+            for engine_name in ["Stockfish", "Lc0", "NNUE"]:
+                for color in ["white", "black"]:
+                    times = avg_times[engine_name][color]
+                    if times:
+                        avg = sum(times) / len(times)
+                        writer.writerow([depth, engine_name, round(avg, 3), color])
+                        print(f"{engine_name} ({color}) avg time @ depth {depth}: {avg:.2f}s")
+                        if avg > max_avg_time:
+                            skip_engine[engine_name] = True
+
+    for engine, _, _ in engines.values():
+        engine.quit()
+
+
+if __name__ == "__main__":
+    main()

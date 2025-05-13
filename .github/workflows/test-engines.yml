@@ -1,16 +1,9 @@
-name: Chess Engine Tests
+name: Chess Engine Benchmark
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
-    inputs:
-      games_per_job:
-        description: 'Liczba gier na zadanie'
-        required: true
-        default: '5'
-      depth:
-        description: 'Glebokosc'
-        required: true
-        default: 3
 
 jobs:
   test:
@@ -34,12 +27,11 @@ jobs:
 
       - name: Tests start
         run: |
-          OFFSET=$(( ( ${{ matrix.job_id }} - 1 ) * ${{ github.event.inputs.games_per_job }} ))
-          python main.py --games ${{ github.event.inputs.games_per_job }} --depth ${{ github.event.inputs.depth }} --job-id ${{ matrix.job_id }} --offset $OFFSET
+          python main.py
         shell: bash
 
       - name: Send results
         uses: actions/upload-artifact@v4
         with:
-          name: wyniki-${{ matrix.job_id }}
-          path: depth_${{ matrix.job_id }}.pgn
+          name: benchmark-results
+          path: results.csv
