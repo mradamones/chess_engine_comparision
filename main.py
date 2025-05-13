@@ -72,6 +72,7 @@ for i in range(args.offset, args.offset + args.games):
         while True:
             move = choose_opening_move(board)
             if move is None:
+                move = None
                 break
             if move in board.legal_moves:
                 board.push(move)
@@ -79,11 +80,10 @@ for i in range(args.offset, args.offset + args.games):
                 moves += 1
             else:
                 print(f"Nielegalny ruch z ksiazki: {move}, pomijam.")
+                move = None
                 break
-            node = node.add_variation(move)
-            moves += 1
         while not board.is_game_over():
-
+            move = None
             if move is None:
                 if (white == "NNUE" and board.turn == chess.WHITE) or (black == "NNUE" and board.turn == chess.BLACK):
                     move = nnue_move(board)
