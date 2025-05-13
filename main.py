@@ -18,10 +18,13 @@ args = parser.parse_args()
 
 
 def choose_opening_move(board):
+    if len(board.move_stack) >= 20:
+        return None
     with chess.polyglot.open_reader(book_path) as reader:
-        moves = list(reader.find_all(board))
-        if moves:
-            return random.choice(moves).move
+        moves = [entry.move for entry in reader.find_all(board)]
+        legal_moves = [move for move in moves if move in board.legal_moves]
+        if legal_moves:
+            return random.choice(legal_moves)
     return None
 
 
@@ -73,12 +76,18 @@ for i in range(args.offset, args.offset + args.games):
         while True:
             move = choose_opening_move(board)
             if move is None:
+                move = None
                 break
-            board.push(move)
-            node = node.add_variation(move)
-            moves += 1
+            if move in board.legal_moves:
+                board.push(move)
+                node = node.add_variation(move)
+                moves += 1
+            else:
+                print(f"Nielegalny ruch z ksiazki: {move}, pomijam.")
+                move = None
+                break
         while not board.is_game_over():
-
+            move = None
             if move is None:
                 if (white == "NNUE" and board.turn == chess.WHITE) or (black == "NNUE" and board.turn == chess.BLACK):
                     # move = nnue_move(board)
