@@ -67,8 +67,14 @@ for i in range(args.offset, args.offset + args.games):
         game.headers["Time"] = str(args.time_control)
         node = game
         moves = 0
-        while not board.is_game_over():
+        while True:
             move = choose_opening_move(board)
+            if move is None:
+                break
+            board.push(move)
+            node = node.add_variation(move)
+            moves += 1
+        while not board.is_game_over():
 
             if move is None:
                 if (white == "NNUE" and board.turn == chess.WHITE) or (black == "NNUE" and board.turn == chess.BLACK):
