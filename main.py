@@ -55,7 +55,7 @@ book_path = "./Komodo.bin"
 # stockfish = chess.engine.SimpleEngine.popen_uci(stockfish_path, stderr=subprocess.DEVNULL)
 # lczero = chess.engine.SimpleEngine.popen_uci([lczero_path, "--threads=1", "--backend=cpu"], stderr=subprocess.DEVNULL)
 stockfish = try_start_engine([stockfish_path])
-lczero = try_start_engine([lczero_path, "--threads=1", "--backend=cpu"])
+lczero = try_start_engine([lczero_path])
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 nnue_model = FakeNNUE().to(device)
