@@ -18,12 +18,14 @@ parser.add_argument('--offset', type=int, default=0, help='Indeks początkowy pa
 args = parser.parse_args()
 
 
-
 def choose_opening_move(board):
+    if len(board.move_stack) >= 20:
+        return None
     with chess.polyglot.open_reader(book_path) as reader:
-        moves = list(reader.find_all(board))
-        if moves:
-            return random.choice(moves).move
+        moves = [entry.move for entry in reader.find_all(board)]
+        legal_moves = [move for move in moves if move in board.legal_moves]
+        if legal_moves:
+            return random.choice(legal_moves)
     return None
 
 
