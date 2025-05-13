@@ -27,7 +27,7 @@ jobs:
 
       - name: Tests start
         run: |
-          python main.py
+          python main.py --job-id ${{ matrix.job_id }}
         shell: bash
 
       - name: Send results

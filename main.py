@@ -10,11 +10,16 @@ import csv
 import os
 from nnue import FakeNNUE, pick_best_move_with_time, pick_best_move, eval_cache
 import torch
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--job-id', type=int, required=True, help='ID zadania')
+args = parser.parse_args()
 
 stockfish_path = "engines/stockfish.exe"
 lczero_path = "engines/lc0/lc0.exe"
 book_path = "./Komodo.bin"
-output_csv = "results.csv"
+output_csv = f"results_{args.job_id}.csv"
 
 stockfish_config = {"Threads": 1}
 lczero_config = {"backend": "cudnn", "gpu_threads": 1}
