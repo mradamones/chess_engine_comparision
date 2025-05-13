@@ -20,7 +20,7 @@ args = parser.parse_args()
 def try_start_engine(args_):
     try:
         engine = chess.engine.SimpleEngine.popen_uci(args_, stderr=subprocess.DEVNULL)
-        print(f"Silnik uruchomiony: {args_}")
+        print(f"Silnik uruchomiony: {args_}, {engine}")
         return engine
     except chess.engine.EngineTerminatedError as e:
         print(f"Blad uruchamiania silnika: {args_}")
@@ -95,7 +95,7 @@ for i in range(args.offset, args.offset + args.games):
                     result = engine.play(board, chess.engine.Limit(depth=args.depth))
                     print(f"Ruch {moves}: {engine} wykonuje ruch na pozycji:\n{board}")
                 except chess.engine.EngineTerminatedError:
-                    print(f"{engine} padł, restartuję.")
+                    print(f"{engine} padl, restartuje.")
                     try:
                         engine.quit()
                     except chess.engine.EngineTerminatedError:
@@ -103,9 +103,6 @@ for i in range(args.offset, args.offset + args.games):
 
                     path = stockfish_path if engine == stockfish else lczero_path
                     args_ = [path]
-                    if "lc0" in path.lower():
-                        args_ += ["--threads=1", "--backend=cpu"]
-
                     engine = chess.engine.SimpleEngine.popen_uci(args_, stderr=subprocess.DEVNULL)
                     result = engine.play(board, chess.engine.Limit(depth=args.depth))
                     print(f"Ruch {moves}: {engine} wykonuje ruch na pozycji:\n{board}")
