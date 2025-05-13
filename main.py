@@ -42,7 +42,7 @@ lczero_path = "engines/lc0/lc0.exe"
 # lczero_path = 'Y:\\chessengines\\lc0_cuda\\lc0.exe'
 book_path = "./Komodo.bin"
 stockfish = chess.engine.SimpleEngine.popen_uci(stockfish_path, stderr=subprocess.DEVNULL)
-lczero = chess.engine.SimpleEngine.popen_uci(lczero_path, stderr=subprocess.DEVNULL)
+lczero = chess.engine.SimpleEngine.popen_uci([lczero_path, "--threads=1", "--backend=cpu"], stderr=subprocess.DEVNULL)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 nnue_model = FakeNNUE().to(device)
 nnue_model.load_state_dict(torch.load("./saved/fakennue_trained.pt"))
@@ -80,12 +80,20 @@ for i in range(args.offset, args.offset + args.games):
                 try:
                     result = engine.play(board, chess.engine.Limit(depth=args.depth))
                 except chess.engine.EngineTerminatedError:
-                    print(f"{engine} padl, restartuje.")
-                    engine.quit()
-                    engine = chess.engine.SimpleEngine.popen_uci(
-                        stockfish_path if engine == stockfish else lczero_path
-                    )
+                    print(f"{engine} padł, restartuję.")
+                    try:
+                        engine.quit()
+                    except chess.engine.EngineTerminatedError:
+                        print("Engine was already terminated.")
+
+                    path = stockfish_path if engine == stockfish else lczero_path
+                    args_ = [path]
+                    if "lc0" in path.lower():
+                        args_ += ["--threads=1", "--backend=cpu"]
+
+                    engine = chess.engine.SimpleEngine.popen_uci(args_, stderr=subprocess.DEVNULL)
                     result = engine.play(board, chess.engine.Limit(depth=args.depth))
+
                 move = result.move
 
             board.push(move)
