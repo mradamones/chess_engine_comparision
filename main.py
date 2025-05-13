@@ -13,6 +13,7 @@ import argparse
 
 def start_engine(path, name=None, config=None):
     engine = chess.engine.SimpleEngine.popen_uci(path, stderr=subprocess.DEVNULL)
+    engine.name = name
     if config:
         try:
             engine.configure(config)
@@ -28,8 +29,9 @@ def ensure_engine(engine, path, config=None):
 
 
 def play_with_restart(engine, path, board, limit, config=None):
+    name = engine.name
     try:
-        engine = ensure_engine(engine, path, config=config)
+        engine = ensure_engine(engine, path, config)
         result = engine.play(board, limit)
         return engine, result.move
     except chess.engine.EngineTerminatedError:
@@ -37,7 +39,7 @@ def play_with_restart(engine, path, board, limit, config=None):
             engine.quit()
         except Exception:
             pass
-        engine = start_engine(path, config=config)
+        engine = start_engine(path, name, config)
         result = engine.play(board, limit)
         return engine, result.move
 
@@ -56,13 +58,14 @@ book_path = "./Komodo.bin"
 stockfish_config = {"Threads": 1}
 lczero_config = {"backend": "cudnn", "gpu_threads": 1}
 
-stockfish = start_engine(stockfish_path, config=stockfish_config)
-lczero = start_engine(lczero_path,    config=lczero_config)
+stockfish = start_engine(stockfish_path, "stockfish", stockfish_config)
+lczero = start_engine(lczero_path, "lc0", lczero_config)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 nnue_model = FakeNNUE().to(device)
 nnue_model.load_state_dict(torch.load("./saved/fakennue_trained.pt"))
 nnue_model.eval()
+
 
 def choose_opening_move(board):
     if len(board.move_stack) >= 20:
