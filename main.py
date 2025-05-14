@@ -124,6 +124,8 @@ def main():
                         continue
 
                     board = chess.Board()
+                    game = chess.pgn.Game()
+                    node = game
                     moves = 0
                     times = {"white": [], "black": []}
 
