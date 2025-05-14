@@ -40,12 +40,16 @@ with chess.engine.SimpleEngine.popen_uci(ENGINE_PATH) as engine, open(output_fil
 
         for move in game.mainline_moves():
             try:
+                if board.is_game_over():
+                    break
                 info_before = engine.analyse(board, chess.engine.Limit(depth=args.depth))
                 eval_before = info_before["score"].relative.score(mate_score=10000)
             except:
                 break
             board.push(move)
             try:
+                if board.is_game_over():
+                    break
                 info_after = engine.analyse(board, chess.engine.Limit(depth=args.depth))
                 eval_after = info_after["score"].relative.score(mate_score=10000)
             except:
