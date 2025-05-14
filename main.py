@@ -93,7 +93,7 @@ start = time.time()
 limit = chess.engine.Limit(depth=args.depth)
 
 for i in range(args.offset, args.offset + args.games):
-    for white, black in [("Stockfish", "Lc0"), ("Lc0", "Stockfish")]:
+    for white, black in [("Stockfish", "Lc0"), ("Lc0", "Stockfish"), ("Stockfish", "NNUE"), ("NNUE", "Stockfish"), ("Lc0", "NNUE"), ("NNUE", "Lc0")]:
         board = chess.Board()
         game = chess.pgn.Game()
         game.headers.update({
