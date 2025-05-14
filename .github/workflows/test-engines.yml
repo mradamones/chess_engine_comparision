@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        job_id: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+        job_id: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -44,7 +44,7 @@ jobs:
 
       - name: Run analysis
         run: |
-          python analyze.py --pgn ${{ github.event.inputs.pgn_file }} --job-id ${{ matrix.job_id }} --total-jobs ${{ github.event.inputs.total_jobs }} --total-games ${{ github.event.inputs.total_games }} --depth ${{ github.event.inputs.depth }}
+          python main.py --pgn ${{ github.event.inputs.pgn_file }} --job-id ${{ matrix.job_id }} --total-jobs ${{ github.event.inputs.total_jobs }} --total-games ${{ github.event.inputs.total_games }} --depth ${{ github.event.inputs.depth }}
 
       - name: Upload results
         uses: actions/upload-artifact@v4
