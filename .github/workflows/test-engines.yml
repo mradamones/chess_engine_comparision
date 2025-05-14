@@ -42,6 +42,9 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install chess
 
+      - name: Make engine executable
+        run: chmod +x engines/ethereal/Ethereal
+
       - name: Run analysis
         run: |
           python main.py --pgn ${{ github.event.inputs.pgn_file }} --job-id ${{ matrix.job_id }} --total-jobs ${{ github.event.inputs.total_jobs }} --total-games ${{ github.event.inputs.total_games }} --depth ${{ github.event.inputs.depth }}
