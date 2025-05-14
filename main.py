@@ -25,7 +25,7 @@ stockfish_config = {"Threads": 1}
 lczero_config = {"backend": "cudnn", "gpu_threads": 1}
 
 max_depth = 10
-games_per_matchup = 2  # 1 jako białe, 1 jako czarne
+games_per_matchup = 2
 max_avg_time = 10
 
 skip_engine = {
@@ -127,14 +127,18 @@ def main():
                     moves = 0
                     times = {"white": [], "black": []}
 
-                    while not board.is_game_over():
+                    while True:
                         mv = choose_opening_move(board)
-                        if mv:
-                            board.push(mv)
-                            continue
+                        if not mv:
+                            break
+                        board.push(mv)
+                        node = node.add_variation(mv)
+                        moves += 1
 
-                        start_time = time.time()
+                    while not board.is_game_over():
+
                         current = white_player if board.turn == chess.WHITE else black_player
+                        start_time = time.time()
                         mv = get_move(current, board, depth, limit, white_player, black_player, engines)
                         elapsed = time.time() - start_time
                         board.push(mv)
