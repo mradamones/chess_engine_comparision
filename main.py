@@ -14,7 +14,7 @@ args = parser.parse_args()
 ENGINE_PATH = "engines/ethereal/Ethereal"
 
 games = []
-with open(args.pgn) as f:
+with open(f'merged/{args.pgn}') as f:
     for _ in range(args.total_games):
         game = chess.pgn.read_game(f)
         if game is None:
