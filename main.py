@@ -31,12 +31,14 @@ output_file = f"acpl_job_{args.job_id}.csv"
 
 with chess.engine.SimpleEngine.popen_uci(ENGINE_PATH) as engine, open(output_file, "w", newline="") as csvfile:
     writer = csv.writer(csvfile)
-    writer.writerow(["GameIndex", "White_ACPL", "Black_ACPL"])
+    writer.writerow(["GameIndex", "White_ACPL", "Black_ACPL", "White", "Black"])
 
     for idx, game in enumerate(my_games):
         board = game.board()
         white_losses = []
         black_losses = []
+        white = game.headers['White']
+        black = game.headers['Black']
 
         for move in game.mainline_moves():
             try:
@@ -68,4 +70,4 @@ with chess.engine.SimpleEngine.popen_uci(ENGINE_PATH) as engine, open(output_fil
 
         white_acpl = round(sum(white_losses) / len(white_losses), 2) if white_losses else "-"
         black_acpl = round(sum(black_losses) / len(black_losses), 2) if black_losses else "-"
-        writer.writerow([start + idx, white_acpl, black_acpl])
+        writer.writerow([start + idx, white_acpl, black_acpl, white, black])
